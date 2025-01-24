@@ -5,8 +5,8 @@ module.exports = {
 
     getAll: (req, res) => {
         ProductModel.find()
-            .then((products) => {
-                res.status(200).json(products);
+            .then((Product) => {
+                res.status(200).json(Product);
             })
             .catch((err) => {
                 console.error(err);
@@ -14,13 +14,9 @@ module.exports = {
             });
     },
     getByID: (req, res) => {
-        const prodid = req.params.id;
-        ProductModel.find({ Pid: prodid })
-            .then((product) => {
-                if (product.length === 0) {
-                    return res.status(404).json({ Msg: `Product with Pid ${prodid} not found` });
-                }
-                res.status(200).json(product);
+        ProductModel.find({ pid : req.params.id })
+            .then((Product) => {
+                res.status(200).json(Product);
             })
             .catch((err) => {
                 console.error(err);
@@ -28,54 +24,36 @@ module.exports = {
             });
     },
     addNew: (req, res) => {
-        const product = new ProductModel({
-            _id: new mongoose.Types.ObjectId(),
-            Pid: req.body.Pid,
-            Pname: req.body.Pname,
-            Price: req.body.Price,
-            Pdesc: req.body.Pdesc,
-        });
-        product
-            .save()
-            .then((savedProduct) => {
-                res.status(200).json({ Msg: `New Product Added`, product: savedProduct });
-            })
-            .catch((err) => {
-                console.error(err);
-                res.status(500).json({ Msg: `Error Server Num 505`, error: err.message });
-            });
+        try {
+            ProductModel.insertMany(req.body)
+                .then((data) => {
+                    return res.status(200).json({Msg: `New Product Added ${data}`});
+                })
+                .catch((err) => {
+                    return res.status(500).json({ error: "Error adding Product", details: err });
+                });
+        } catch (error) {
+            return res.status(500).json({ error: "Unexpected error occurred", details: error.message });
+        }
     },
+  
     Update: (req, res) => {
-        const prodid = req.params.id;
-        ProductModel.findOneAndUpdate(
-            { Pid: prodid },
-            {
-                Pid: req.body.Pid,
-                Pname: req.body.Pname,
-                Price: req.body.Price,
-                Pdesc: req.body.Pdesc,
-            },
-            { new: true }
-        )
-            .then((updatedProduct) => {
-                if (!updatedProduct) {
-                    return res.status(404).json({ Msg: `Product with Pid ${prodid} not found` });
-                }
-                res.status(200).json({ Msg: `Product Updated`, product: updatedProduct });
-            })
+        ProductModel.UpdateOne(({pid:req.params.pid},req.body).then((data)=>{
+            return res.status(200).json(`Updated By ID : ${data}`);
+        }))
             .catch((err) => {
                 console.error(err);
                 res.status(500).json({ Msg: `Error Server Num 505`, error: err.message });
             });
     },
+
     Delete: (req, res) => {
-        const prodid = req.params.id;
-        ProductModel.findOneAndDelete({ Pid: prodid })
-            .then((deletedProduct) => {
+        ProductModel.deleteOne({ pid: req.params.id },req.body)
+            .then((data) => {
                 if (!deletedProduct) {
-                    return res.status(404).json({ Msg: `Product with Pid ${prodid} not found` });
+                    return res.status(404).json({ Msg: `Product with pid ${data} not found` });
                 }
-                res.status(200).json({ Msg: `Product Deleted`, product: deletedProduct });
+                res.status(200).json({ Msg: `Product Deleted : ${data}`});
             })
             .catch((err) => {
                 console.error(err);
