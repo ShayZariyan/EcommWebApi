@@ -1,6 +1,7 @@
 const router=require('express').Router();
 const bcrypt=require('bcrypt');
 const UsersModel=require('../models/users');
+const userauth=require('../middlewares/users');
 const {register,login,getAll,getByID,Update,Delete}=require('../controllers/users')
 
 router.get('/',getAll);

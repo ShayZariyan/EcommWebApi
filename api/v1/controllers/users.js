@@ -1,10 +1,12 @@
 const mongoose=require('mongoose');
+const dotenv=require('dotenv');
 const UsersModel = require('../models/users');
 const jwt=require('jsonwebtoken');
 const bcrypt=require('bcrypt');
+const auth=require('../middlewares/users');
 const rounds=10;
 module.exports = {
-    
+
     getAll: (req, res) => {
         UsersModel.find()
             .then((users) => {
@@ -27,31 +29,37 @@ module.exports = {
     },
 
     login: (req, res) => {
+
         const { Uname, Upass } = req.body;
         UsersModel.findOne({ Uname })
-            .then(user => {
-                if (!user) {
+            .then(user => 
+            {
+                if (!user) 
+                    {
                     return res.status(404).json({ Msg: `The User ${Uname} Doesn't Exist` });
-                } 
+                    } 
                 else 
-                {
+                    {
                     bcrypt.compare(Upass, user.Upass)
-                        .then(exist => {
-                            if (!exist) {
-                                return res.status(404).json({ Msg: `Wrong Password` });
-                            } else {
-                                
-                                const PrivateKey=Upass
-                                const token=jwt.sign({Uname,fullname},PrivateKey,{expiresIn:'1h'});
-                                res.status(200).json({ Msg: `Welcome ${Uname} `, token });
+                    .then(exist => 
+                        {
+                        if (!exist) {
+                        return res.status(404).json({ Msg: `Wrong Password` });
+                        } 
+                        else 
+                        {          
+                            const secretKey = process.env.JWT_SECRET || 'Olala';
+                            const token = jwt.sign({Uname}, secretKey, { expiresIn: '1h' });
+                            
+                            return res.status(404).json({ Msg: `Welcome ${Uname} , ${token}` });
 
-                            }
+                        }
                         })
                         .catch(err => {
                             console.error(err);
                             res.status(500).json({ Msg: `Server Error - ${err}` });
                         });
-                }
+                    }
             })
             .catch(err => {
                 console.error(err);

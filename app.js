@@ -10,9 +10,11 @@ const morgan = require('morgan');
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(morgan('dev'));
+const auth=require('./api/v1/middlewares/users');
 const secure=require('./api/v1/middlewares/secure');
+//app.get('/manage',auth, (req, res) => res.status(200).json({msg:"You Are A Manager"}));
 app.use(secure);
-app.use('/product',prodrouter);
+app.use('/product',auth,prodrouter);
 app.use('/category',catrouter);
 app.use('/user',userrouter);
 
